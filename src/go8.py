@@ -85,38 +85,51 @@ class Solver:
         if GameOfEight.is_goal(node, self.goal_state):
             return 'Trivial Solution Exists'
 
-        container = []
-        heapq.heappush(container, node)
+        container = [node]
+        heapq.heapify(container)
         explored = set()
 
-        while True:
-            if len(container) == 0:
-                return 'No Solution Exists'
+        while container:
 
             node = heapq.heappop(container)
-            explored.add(node)
 
+            # Handle Win Condition
+            if GameOfEight.is_goal(node, self.goal_state):
+                print(f'Found a solution')
+                states_seq = []
+                moves_seq = []
+
+                # TODO: Infinite loop
+                while parents[node] != -1:
+                    states_seq.append(node)
+                    moves_seq.append(actions[parents[node], node])
+                    node = parents[node]
+
+                states_seq.reverse()
+                moves_seq.reverse()
+
+                for state in states_seq:
+                    print(GameOfEight.visualise(state))
+
+                print(f'Total moves required: {len(states_seq)}')
+                return f'Found a solution!'
+
+            # Look as successors
             for c_state, c_action in GameOfEight.get_neighbours(node):
+
                 if c_state not in explored:
-                    parents[c_state] = node
-                    actions[node, c_state] = c_action
-                    if GameOfEight.is_goal(c_state, self.goal_state):
-                        states_seq = []
-                        moves_seq = []
-                        while parents[c_state] != -1:
-                            states_seq.append(c_state)
-                            moves_seq.append(actions[parents[c_state], c_state])
-                            c_state = parents[c_state]
-                        states_seq.reverse()
-                        moves_seq.reverse()
-                        for state in states_seq:
-                            print(GameOfEight.visualise(state))
-                        return f'Found a solution!'
+                    explored.add(c_state)
                     heapq.heappush(container, c_state)
+
+                    parents[c_state] = node
+                    actions[(node, c_state)] = c_action
+
+        return 'No Solutions exist'
 
 
 # g = Solver('1234_5678', '_23145678')
-g = Solver('13547_682', '1234_5678')
+g = Solver('1234_5678', '123_45678')
 print(g.solve_bfs())
+
 
 
